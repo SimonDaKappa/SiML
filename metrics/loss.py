@@ -74,13 +74,13 @@ def mean_absolute_error(y_true: np.array, y_pred: np.array) -> np.array:
 
 def cross_entropy(y_true: np.array, y_pred: np.array, classes: list[int] = [0, 1]) -> np.array:
   """
-  computes the log loss between the true and predicted values
+  computes the cross entropy loss between the true and predicted values
   
   Args:
       y_true (_type_): np.array of shape (n, m), the true values
       y_pred (_type_): np.array of shape (n, m), the predicted values
       classes (_type_): list[int], the classes to compute the cross entropy
-      for, default is binary classification [0, 1], for multi-class [0, 1, ..., n-1]
+      for, default is binary classification [0, 1], for multi-class [0, 1, ..., k-1]
       duplicates are reduced to unique values
 
   Returns:
@@ -93,10 +93,12 @@ def cross_entropy(y_true: np.array, y_pred: np.array, classes: list[int] = [0, 1
     raise ValueError("y_true and y_pred must have the same shape")
   if y_true.shape[1] < 1:
     raise ValueError("y_true and y_pred must have at least one feature")
-  if y_true.shape[1] == 1:
+ 
+  if classes == [0, 1]:
     return binary_cross_entropy(y_true, y_pred)
-  if y_true.shape[1] > 1:
-    return n_cross_entropy(y_true, y_pred)
+  if len(classes) > 2:
+    unique_classes = ulist.unique(classes)
+    return k_cross_entropy(y_true, y_pred, unique_classes)
     
 
 def binary_cross_entropy(y_true: np.array, y_pred: np.array) -> np.array:
@@ -115,130 +117,64 @@ def binary_cross_entropy(y_true: np.array, y_pred: np.array) -> np.array:
     raise ValueError("y_true and y_pred must have the same shape")
   if y_true.shape[1] != 1:
     raise ValueError("y_true and y_pred must have exactly one output feature")
+  
   elif y_true.shape[1] == 1:
     return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
   else: 
     return -np.mean(np.sum(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred), axis=1))  
 
 
-def n_cross_entropy(y_true: np.array, y_pred: np.array, n: int) -> np.array:
+def k_cross_entropy(y_true: np.array, y_pred: np.array, classes : list[int] ) -> np.array:
   """
-    computes the n-class cross entropy loss, classes indexed as [0, ..., n-1
+    computes the k-class cross entropy loss, classes indexed as [0, ..., k-1]
   
   Args:
       y_true (np.array): A (n, m) array of true values, 
-      m features, with eage feature having the same n classes
-      y_pred (np.array): _description_
-      n (int): _description_
-
-  
+      m features, with each feature having the same k classes
+      y_pred (np.array): A (n, m) array of predicted values,
+      m features, with each feature having the same k classes
+      clseses (list[int]): A list of unique classes, indexed as [0, ..., k-1]
 
   Returns:
-      np.array: _description_
+      np.array: The multiclass cross entropy loss between the true and predicted values
   """
   
+  #TODO: Implement k-class cross entropy loss
+  if y_true.shape != y_pred.shape:
+    raise ValueError("y_true and y_pred must have the same shape")
+  if y_true.shape[1] < 1:
+    raise ValueError("y_true and y_pred must have at least one feature")
+  if y_true.shape[1] == 1:
+    pass
+  elif y_true.shape[1] > 1:
+    pass  
+
 
 def hinge(y_true: np.array, y_pred: np.array) -> np.array:
-  """
-  computes the hinge loss between the true and predicted values
-  
-  Args:
-      y_true (_type_): np.array of shape (n, m), the true values
-      y_pred (_type_): np.array of shape (n, m), the predicted values
-
-  Returns:
-      np.array(_type_): the hinge loss between the true and predicted values
-  """
-  if y_true.shape != y_pred.shape:
-    raise ValueError("y_true and y_pred must have the same shape")
-  if y_true.shape[1] < 1:
-    raise ValueError("y_true and y_pred must have at least one feature")
-  if y_true.shape[1] == 1:
-    return binary_hinge(y_true, y_pred)
-  if y_true.shape[1] > 1:
-    return n_hinge(y_true, y_pred)
-
-
-def hinge_ppow(y_true: np.array, y_pred: np.array, p: float) -> np.array:
-  """
-  computes the pth-power of hinge loss between the true and predicted values
-  
-  Args:
-      y_true (_type_): np.array of shape (n, m), the true values
-      y_pred (_type_): np.array of shape (n, m), the predicted values
-      p (_type_): float, the power to raise the hinge loss to
-    
-  Returns:
-      np.array(_type_): the p-power hinge loss between the true and predicted values
-  """
-  if y_true.shape != y_pred.shape:
-    raise ValueError("y_true and y_pred must have the same shape")
-  if y_true.shape[1] < 1:
-    raise ValueError("y_true and y_pred must have at least one feature")
-  if y_true.shape[1] == 1:
-    return binary_hinge_ppow(y_true, y_pred, p)
-  if y_true.shape[1] > 1:
-    return n_hinge_ppow(y_true, y_pred, p)
-  
-
-
-def binary_hinge(y_true: np.array, y_pred: np.array) -> np.array:
-  """
-  computes the hinge loss between the true and predicted values
-  
-  Args:
-      y_true (_type_): np.array of shape (n, m), the true values
-      y_pred (_type_): np.array of shape (n, m), the predicted values
-
-  Returns:
-      np.array(_type_): the hinge loss between the true and predicted values
-  """
-  if y_true.shape[1] == 1 and y_pred.shape[1] == 1:
-    return np.mean(np.maximum(0, 1 - y_true * y_pred))
-  elif y_true.shape == y_pred.shape: 
-    return np.mean(np.sum(np.maximum(0, 1 - y_true * y_pred), axis=1))
-  raise ValueError("y_true and y_pred must have the same shape")
-
-
-def binary_hinge_ppow(y_true: np.array, y_pred: np.array, p: float) -> np.array:
-  """
-  computes the pth-power of hinge loss between the true and predicted values
-  
-  Args:
-      y_true (_type_): np.array of shape (n, m), the true values
-      y_pred (_type_): np.array of shape (n, m), the predicted values
-      p (_type_): float, the power to raise the hinge loss to
-    
-  Returns:
-      np.array(_type_): the p-power hinge loss between the true and predicted values
-  """
-  if y_true.shape[1] == 1 and y_pred.shape[1] == 1:
-    return (np.maximum(0, 1 - y_true * y_pred)) ** p
-  elif y_true.shape == y_pred.shape:
-    return (np.sum(np.maximum(0, 1 - y_true * y_pred), axis=1)) ** p
-  
-  
-def n_hinge(y_true: np.array, y_pred: np.array) -> np.array:
   """
   computes the m-feature hinge loss between the true and predicted values
   
   Args:
-      y_true (_type_): np.array of shape (n, m), the true values
-      y_pred (_type_): np.array of shape (n, m), the predicted values
+      y_true (_type_): np.array of shape (n, m), the true values, y values = {-1 or 1}
+      y_pred (_type_): np.array of shape (n, m), the predicted values, y values = {-1 or 1}
 
   Returns:
-      np.array(_type_): the m-feature hinge loss between the true and predicted values
+      np.array(_type_): the hinge loss between the true and predicted values
   """
-  if y_true.shape[1] == 1 and y_pred.shape[1] == 1:
+  if y_true.shape != y_pred.shape:
+    raise ValueError("y_true and y_pred must have the same shape")
+  if y_true.shape[0] < 1:
+    raise ValueError("y_true and y_pred must have at least one feature")
+  
+  if y_true.shape[1] == 1:
     return np.mean(np.maximum(0, 1 - y_true * y_pred))
   elif y_true.shape == y_pred.shape: 
     return np.mean(np.sum(np.maximum(0, 1 - y_true * y_pred), axis=1))
-  raise ValueError("y_true and y_pred must have the same shape")
 
 
-def n_hinge_ppow(y_true: np.array, y_pred: np.array, p: float) -> np.array:
+def hinge_ppow(y_true: np.array, y_pred: np.array, p: float) -> np.array:
   """
-  computes the pth-power of m-feature hinge loss between the true and predicted values
+  computes the pth-power of m-features hinge loss between the true and predicted values
   
   Args:
       y_true (_type_): np.array of shape (n, m), the true values
@@ -246,9 +182,14 @@ def n_hinge_ppow(y_true: np.array, y_pred: np.array, p: float) -> np.array:
       p (_type_): float, the power to raise the hinge loss to
     
   Returns:
-      np.array(_type_): the pth-power m-feature hinge loss between the true and predicted values
+      np.array(_type_): the p-power hinge loss between the true and predicted values
   """
-  if y_true.shape[1] == 1 and y_pred.shape[1] == 1:
+  if y_true.shape != y_pred.shape:
+    raise ValueError("y_true and y_pred must have the same shape")
+  if y_true.shape[0] < 1:
+    raise ValueError("y_true and y_pred must have at least one feature")
+  
+  if y_true.shape[1] == 1:
     return (np.maximum(0, 1 - y_true * y_pred)) ** p
   elif y_true.shape == y_pred.shape:
     return (np.sum(np.maximum(0, 1 - y_true * y_pred), axis=1)) ** p
