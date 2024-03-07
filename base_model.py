@@ -1,16 +1,14 @@
 import copy 
-from collections import defaultdict
 import numpy as np
 
-class BaseRegressor:
-  def score(self, X, y):
-    y_pred = self.predict(X)
-    return self._score(y, y_pred)
+class BaseModel:
+  """ 
+  The very base level class for all models
+  """
+  
+  def copy(self):
+    """
+    returns a deep copy of the model
+    """
+    return copy.deepcopy(self)
 
-class BaseClassifier:
-  def score(self, X, y):
-    y_pred = self.predict(X)
-    return self._score(y, y_pred)
-
-class BaseCluster:
-  pass

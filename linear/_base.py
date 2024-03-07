@@ -1,37 +1,26 @@
 import numpy as np
-from ..base_model import (
-  BaseClassifier, 
-  BaseRegressor
-)
+from scipy import linalg, optimize
+from ..base_model import BaseModel
 
-
-class LinearClassifier(BaseClassifier):
-  algorithm = None
-  W = None
-  b = None
+class LinearModel(BaseModel):
   
   
-  """
-  Base CLass for Linear Classifier models
-  
-  Args:
-      BaseClassifier (BaseModel): the BaseClassifier superclass
-  """
-  def set_training_algorithm(self, algorithm: str):
+  def __init__(self, W: np.array = None, b: np.array = None):
     """
-    sets the training algorithm for the model
+    Base CLass for Linear Classifier models
     
     Args:
-        algorithm (_type_): str, the training algorithm to use
+        W (_type_): np.array of shape (m, k), the weights of the model
+        b (_type_): np.array of shape (k, 1), the bias of the model
     """
-    try:
-      self.training_algorithm = getattr(self, algorithm, None)
-    except AttributeError:
-      raise ValueError(
-        "algorithm must be a valid training algorithm\n"
-        + "Algorithms supported: PLA, LinearRegressoion, LogisticRegression"
-      )
-  
+    if W is None:
+      self.W = self.construct_default_weights()
+    else:
+      self.W = W
+    self.b = np.zeros((1, 1)) if b is None else b
+    
+    self.super().__init__()
+
   
   def fit(self, X: np.array, y: np.array):
     """
@@ -41,7 +30,6 @@ class LinearClassifier(BaseClassifier):
         X (_type_): np.array of shape (n, m), the input data
         y (_type_): np.array of shape (n, 1), the target data
     """
-    self.training_algorithm(X, y)
     
     
   def predict(self, X: np.array) -> np.array:
@@ -55,6 +43,19 @@ class LinearClassifier(BaseClassifier):
         np.array(_type_): the predicted class of the input data
     """
     
+    
+  def score(self, X: np.array, y: np.array) -> float:
+    """
+    returns the accuracy of the model
+    
+    Args:
+        X (_type_): np.array of shape (n, m), the input data
+        y (_type_): np.array of shape (n, 1), the target data
+    
+    Returns:
+        float(_type_): the accuracy of the model
+    """
+   
     
   def set_weights(self, W: np.array, b: np.array = None):
     """
@@ -78,4 +79,20 @@ class LinearClassifier(BaseClassifier):
     self.b = b
   
   
- 
+  def construct_default_weights(self, shape: tuple = [2, 1]):
+    """
+    Creates the default weights for the model
+
+    Args:
+        shape (tuple) : [a, b], a tuple of integers representing the length of each layer
+        (i.e, the number of features and the number of classes)
+    """
+    self.W = np.random.rand(*shape)
+    
+
+  def 
+    
+  def __str__(self):
+    return f"LinearModel(W={self.W}, b={self.b})"
+  
+
