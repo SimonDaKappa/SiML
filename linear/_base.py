@@ -90,8 +90,6 @@ class LinearModel(BaseModel):
     self.W = np.random.rand(*shape)
     
 
-  def 
-    
   def __str__(self):
     return f"LinearModel(W={self.W}, b={self.b})"
   
