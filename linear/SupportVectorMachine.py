@@ -2,24 +2,30 @@ import numpy as np
 from cvxopt import matrix, solvers
 from cvxopt.solvers import qp
 from numpy.core.multiarray import array as array
-from _base import LinearModel
+from ..base_model import BaseModel
 from ..metrics.kernel import *
+from ..metrics.norm import *
 
-class SupportVectorMachine(LinearModel):
-  """ SupportVectorMachine with kernel trick
+class KernelSupportVectorMachine(BaseModel):
+  """ 
+  SupportVectorMachine with kernel trick
+  When fitting data, the model uses the dual
+  problem formulation andx extracts the primal
+  solution in the form
 
   Args:
-      LinearModel (_type_): _description_
+      BaseModel (_type_): _description_
   """
   
-  def __init__(self, 
+  def __init__(self,
                kernel: Kernel,
                lambda_regularize: float = 1.0,
                max_iter: int = 1000):
-    super().__init__()
-    self.lambda_regularize = lambda_regularize
-    self.kernel = Kernel
     
+    super().__init__()
+    self.kernel = kernel
+    self.lambda_regularize = lambda_regularize
+    self._hypothesis = lambda x : None
     
   
   def fit(self, X: np.array, y: np.array):
@@ -62,7 +68,7 @@ class SupportVectorMachine(LinearModel):
     self.b_star = y[s_idx] - sum([alpha['x'][i]*y[i]*self.kernel(X[i], X[s_idx])
                                  for i in range(len(alpha['x']))])
     # recover primal hypothesis(x_input) = sign(sum_{alpha_i > 0}^N alpha_i y_i K(x_i, x_input) + b_star)
-    self.hypothesis = lambda x: np.sign(sum(
+    self._hypothesis = lambda x: np.sign(sum(
         [alpha['x'][i]*y[i]*self.kernel(X[i], x) for i in range(len(alpha['x']))]) + self.b_star)
     
     
@@ -81,7 +87,7 @@ class SupportVectorMachine(LinearModel):
   
   def _gram_matrix(self, X: np.array, y: np.array) -> matrix:
     """
-    computes the gram matrix of the input data
+    computes the gram matrix of the input data for fitting
     
     Args:
         X (_type_): np.array of shape (n, m), the input data
@@ -96,4 +102,49 @@ class SupportVectorMachine(LinearModel):
     return matrix(gram)
     
     
+class ADMMSupportVectorMachine(BaseModel):
+  """
+  SupportVectorMachine with kernel trick
+  When fitting data, the model uses the Alternating
+  Direction Method of Multipliers (ADMM) to solve
+  the dual problem formulation and extracts the primal
+  OR, solving the primal problem formulation directly
+  TODO: implement Kernel trick for both primal and dual
+  
+  Args:
+      BaseModel (_type_): _description_
+  """
+
+  def __init__(self,
+               lambda_regularize: float = 0.1,
+               beta: float = 0.5
+               max_iter: int = 1000):
+
+    super().__init__()
+    self.lambda_regularize = lambda_regularize
+    self.beta = beta
+    self._hypothesis = lambda x: ValueError("Model not fitted")
+
+  def fit(self, X: np.array, y: np.array):
+    """
+    fits the model to the input data, using dual formulation
     
+    Args:
+        X (_type_): np.array of shape (n, m), the input data
+        y (_type_): np.array of shape (n, 1), the target data
+    """
+    
+    
+
+
+  def predict(self, X: np.array) -> np.array:
+    """
+    predicts the class of the input data
+    
+    Args:
+        X (_type_): np.array of shape (n, m), the input data
+    
+    Returns:
+        np.array(_type_): the predicted class of the input data
+    """
+    return np.array([self._hypothesis(x) for x in X])

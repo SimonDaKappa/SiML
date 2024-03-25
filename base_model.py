@@ -1,10 +1,16 @@
 import copy 
 import numpy as np
+from metrics import loss
 
 class BaseModel:
   """ 
   The very base level class for all models
   """
+  
+  
+  def __init__(self):
+    self.loss_fn = None
+  
   
   def copy(self):
     """
@@ -17,3 +23,6 @@ class BaseModel:
     """
     performs k-fold cross validation on the model
     """
+    if not self.loss_fn:
+      raise ValueError("Loss function not defined")
+    

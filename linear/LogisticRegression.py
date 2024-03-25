@@ -50,7 +50,6 @@ class LogisticRegression(LinearModel):
     
     for _ in range(self.training_iterations):
       
-      
       # compute the gradient of the loss function for current batch
       grad = self.logistic_gradient(X, y)
       
